@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+  // no one but db admin can change auth level
+  match /admin/{document=**} {
+  	allow read, write: if false;
+  }
+
+    // user rules
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // blog rules
+    match /posts/{document=**} {
+    	allow read;
+      allow create: if request.auth.uid != null;
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+    
+    // contact forms (user generated) rules
+    match /contact-forms/{document=**} {
+    	allow read: if request.auth.uid != null;
+      allow update, delete: if false;
+      allow create;
+    }
+    
+    // games rules
+    match /games/{document=**} {
+    	allow read: if true;
+      allow write: if request.auth.uid != null;
+    }
+
+    // only logged in people can edit docs, change to validate user
+    //match /{document=**} {
+    //  allow read;
+    //  allow write: if request.auth.uid != null
+    //}
+  }
+}
