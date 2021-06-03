@@ -2,28 +2,17 @@
 
 ## Project setup
 ```
-yarn install
+1. yarn install
+2. yarn serve
 ```
 
-### Compiles and hot-reloads for development
+## Connect to firebase & Deploy
 ```
-yarn serve
+1. Create account
+2. Create new project
+3. Follow instructions from firebase
+4. Add .env file to local prject
+5. Add apiKey, databaseURL, etc. from to .env
+6. yarn build
+7. firebase deploy --only hosting
 ```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Run your unit tests
-```
-yarn test:unit
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
