@@ -7,14 +7,14 @@
 		"
 		@click="$router.push({ name: 'BlogPost', params: { id: post.id } })"
 	>
+		<!-- :placeholder-src="require('@/assets/images/scared-batman.jpg')" -->
 		<q-img
 			:src="post.image"
-			:placeholder-src="require('@/assets/images/scared-batman.jpg')"
 			:class="$q.screen.lt.sm ? 'card-image-medium row' : 'card-image row'"
 		>
 			<template v-slot:error>
 				<div class="absolute-full flex flex-center text-white">
-					Cannot load image
+					No Image Available
 				</div>
 				<div v-if="isAdmin" class="tools">
 					<q-icon
@@ -27,9 +27,7 @@
 							$router.push({ name: 'EditPost', params: { id: post.id } })
 						"
 					>
-						<q-tooltip>
-							Edit This Blog Post
-						</q-tooltip>
+						<q-tooltip> Edit This Blog Post </q-tooltip>
 					</q-icon>
 
 					<q-icon
@@ -40,9 +38,7 @@
 						style="top: 8px; left: 8px"
 						@click.stop="$emit('delete', post.id)"
 					>
-						<q-tooltip>
-							Delete This Blog Post
-						</q-tooltip>
+						<q-tooltip> Delete This Blog Post </q-tooltip>
 					</q-icon>
 				</div>
 			</template>
@@ -69,9 +65,7 @@
 						$router.push({ name: 'EditPost', params: { id: post.id } })
 					"
 				>
-					<q-tooltip>
-						Edit This Blog Post
-					</q-tooltip>
+					<q-tooltip> Edit This Blog Post </q-tooltip>
 				</q-icon>
 
 				<q-icon
@@ -82,9 +76,7 @@
 					style="top: 8px; left: 8px"
 					@click.stop="$emit('delete', post.id)"
 				>
-					<q-tooltip>
-						Delete This Blog Post
-					</q-tooltip>
+					<q-tooltip> Delete This Blog Post </q-tooltip>
 				</q-icon>
 			</div>
 		</q-img>
@@ -110,7 +102,7 @@
 		<q-card-section v-if="$q.screen.gt.xs" class="q-pt-lg">
 			<div class="row">
 				<span v-for="(category, index) in post.categories" :key="index">
-					<span style="margin-right: 5px; overflow: auto;">
+					<span style="margin-right: 5px; overflow: auto">
 						#{{ category.label }}
 					</span>
 				</span>
@@ -124,7 +116,7 @@
 		<q-card-section v-else>
 			<q-separator color="white" />
 			<span v-for="(category, index) in post.categories" :key="index">
-				<span style="margin-right: 5px; overflow: auto;">
+				<span style="margin-right: 5px; overflow: auto">
 					#{{ category.label }}
 				</span>
 			</span>
@@ -133,100 +125,100 @@
 </template>
 
 <script lang="ts">
-	import { defineComponent, reactive, toRefs } from "@vue/composition-api"
-	import print from "@/components/utils"
-	import { date } from "quasar"
+import { defineComponent, reactive, toRefs } from "@vue/composition-api";
+import print from "@/components/utils";
+import { date } from "quasar";
 
-	export default defineComponent({
-		props: {
-			post: {
-				type: Object,
-				required: true,
-				default: new Object(),
-			},
+export default defineComponent({
+	props: {
+		post: {
+			type: Object,
+			required: true,
+			default: new Object(),
 		},
-		setup() {
-			const element: any = reactive({})
-			const { isAdmin } = print(0)
+	},
+	setup() {
+		const element: any = reactive({});
+		const { isAdmin } = print(0);
 
-			function getDate(timestamp: any) {
-				return date.formatDate(timestamp.toDate(), "MMMM D, YYYY")
-			}
+		function getDate(timestamp: any) {
+			return date.formatDate(timestamp.toDate(), "MMMM D, YYYY");
+		}
 
-			return { ...toRefs(element), getDate, isAdmin }
-		},
-	})
+		return { ...toRefs(element), getDate, isAdmin };
+	},
+});
 </script>
 
 <style lang="scss" scoped>
-	@import "@/styles/colors.scss";
+@import "@/styles/colors.scss";
 
-	.q-img {
-		div .tools {
-			background: $orion-white-translucent;
-			right: 0%;
-			top: 0%;
-			padding-top: 0;
-			padding-left: 0;
-		}
+.q-img {
+	div .tools {
+		background: $orion-white-translucent;
+		right: 0%;
+		top: 0%;
+		padding-top: 0;
+		padding-left: 0;
 	}
+}
 
-	.blog-card {
-		width: 500px;
-		height: 425px;
+.blog-card {
+	width: 500px;
+	height: 425px;
 
-		min-width: 250px;
-		min-height: 212px;
+	min-width: 250px;
+	min-height: 212px;
 
-		max-width: 500px;
-		max-height: 425px;
+	max-width: 500px;
+	max-height: 425px;
 
-		background: $background-accent;
+	background: $background-accent;
 
-		color: white;
-	}
+	color: white;
+}
 
-	.card-image {
-		width: 500px;
-		height: 250px;
+.card-image {
+	width: 500px;
+	height: 250px;
 
-		min-width: 250px;
-		min-height: 212px;
+	min-width: 250px;
+	min-height: 212px;
 
-		max-width: 500px;
-		max-height: 250px;
-	}
+	max-width: 500px;
+	max-height: 250px;
+}
 
-	.blog-card-medium {
-		width: 250px;
-		height: 250px;
+.blog-card-medium {
+	width: 250px;
+	height: 250px;
 
-		min-width: 250px;
-		min-height: 250px;
+	min-width: 250px;
+	min-height: 250px;
 
-		max-width: 250px;
-		max-height: 250px;
+	max-width: 250px;
+	max-height: 250px;
 
-		background: $background-accent;
+	background: $background-accent;
 
-		color: white;
-	}
+	color: white;
+}
 
-	.card-image-medium {
-		// width: 250px;
-		// height: 125px;
-		width: auto;
-		height: auto;
+.card-image-medium {
+	// width: 250px;
+	// height: 125px;
+	width: auto;
+	height: auto;
 
-		min-width: 125px;
-		min-height: 125px;
+	min-width: 125px;
+	min-height: 125px;
 
-		max-width: 250px;
-		max-height: 125px;
-	}
+	max-width: 250px;
+	max-height: 125px;
+}
 
-	.blog-card-small {
-		background: $background-accent;
-		color: white;
-	}
+.blog-card-small {
+	background: $background-accent;
+	color: white;
+}
 </style>

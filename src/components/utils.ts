@@ -43,3 +43,10 @@ export function generateGradient() {
 export function getRandomAngle(minAngle = 0, maxAngle = 360) {
   return ((Math.random() * (maxAngle - minAngle) + minAngle) / 180) * Math.PI;
 }
+
+
+export function importJSON(fileLocation: string) {
+  const data = require(fileLocation)
+
+  console.log(data)
+}

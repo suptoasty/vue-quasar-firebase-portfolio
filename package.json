@@ -1,5 +1,5 @@
 {
-	"name": "miniman-web",
+	"name": "",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
@@ -16,6 +16,8 @@
 		"core-js": "^3.6.5",
 		"dotenv": "^8.2.0",
 		"firebase": "^7.21.1",
+		"firebase-tools": "^9.12.1",
+		"global": "^4.4.0",
 		"katex": "^0.12.0",
 		"mermaid": "^8.8.4",
 		"quasar": "^1.14.5",

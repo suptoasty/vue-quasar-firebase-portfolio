@@ -9,6 +9,7 @@
 					v-model="post.description"
 					label="description"
 				/>
+				<!-- <q-file v-model="file" label="Cover Image" outlined /> -->
 				<q-input
 					outlined
 					type="text"
@@ -70,108 +71,126 @@
 </template>
 
 <script lang="ts">
-	import {
-		reactive,
-		toRefs,
-		onMounted,
-		defineComponent,
-	} from "@vue/composition-api"
-	import CategoryBox from "@/components/blog/CategoryBox.vue"
-	import { postsCollection, auth } from "@/plugins/firebase"
-	import QEditor from "@/components/blog/QEditor.vue"
+/* eslint-disable */
 
-	export default defineComponent({
-		name: "BlogPost",
-		props: {
-			id: {
-				type: String,
-				default: "",
-			},
-			isAdd: {
-				type: Boolean,
-				default: false,
-			},
+import {
+	reactive,
+	toRefs,
+	onMounted,
+	defineComponent,
+} from "@vue/composition-api";
+import CategoryBox from "@/components/blog/CategoryBox.vue";
+import { postsCollection, auth } from "@/plugins/firebase";
+import QEditor from "@/components/blog/QEditor.vue";
+
+export default defineComponent({
+	name: "BlogPost",
+	props: {
+		id: {
+			type: String,
+			default: "",
 		},
-		components: {
-			CategoryBox,
-			QEditor,
+		isAdd: {
+			type: Boolean,
+			default: false,
 		},
-		setup(props: any, context: any) {
-			const { $router } = context.root
-			const element: any = reactive({
-				post: {},
-				showDialogue: false,
-			})
+	},
+	components: {
+		CategoryBox,
+		QEditor,
+	},
+	setup(props: any, context: any) {
+		const { $router } = context.root;
+		const element: any = reactive({
+			post: {},
+			showDialogue: false,
+			file: [],
+		});
 
-			function save() {
-				element.post.content = context.refs.editor.html
+		function getBase64(file: any) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = (error) => reject(error);
+			});
+		}
 
-				if (props.isAdd) {
-					postsCollection.add(element.post).then((doc) => {
-						props.id = doc.id
-						$router.go(-1)
-					})
+		async function save() {
+			element.post.content = context.refs.editor.html;
+
+			if (props.isAdd) {
+				if (element.file) {
+					await getBase64(element.file).then((image) => {
+						element.post.image = image;
+					});
 				}
 
+				postsCollection.add(element.post).then((doc) => {
+					props.id = doc.id;
+					$router.go(-1);
+				});
+			}
+
+			postsCollection
+				.where("__name__", "==", props.id)
+				.get()
+				.then((collection) => {
+					collection.forEach((doc) => {
+						postsCollection
+							.doc(doc.id)
+							.update(element.post)
+							.then(() => {
+								$router.go(-1);
+							});
+					});
+				});
+		}
+
+		function deleteDoc() {
+			if (props.isAdd) {
+				context.root.$router.go(-1);
+			} else {
 				postsCollection
-					.where("__name__", "==", props.id)
+					.doc(props.id)
+					.delete()
+					.then(() => {
+						context.root.$router.push({ name: "Blog" });
+					});
+			}
+		}
+
+		onMounted(async () => {
+			if (props.isAdd) {
+				element.post = {
+					categories: [],
+					comments: 0,
+					content: "",
+					createdOn: new Date(),
+					description: "",
+					featured: false,
+					image: "",
+					likes: 0,
+					hidden: false,
+					title: "",
+					views: 0,
+					userId: auth.currentUser?.uid,
+					userName: context.root.$store.state.userProfile.name,
+				};
+			} else {
+				postsCollection
+					.doc(props.id)
 					.get()
-					.then((collection) => {
-						collection.forEach((doc) => {
-							postsCollection
-								.doc(doc.id)
-								.update(element.post)
-								.then(() => {
-									$router.go(-1)
-								})
-						})
-					})
+					.then((doc) => {
+						element.post = doc.data();
+						context.refs.editor.options.content = element.post.content;
+					});
 			}
+		});
 
-			function deleteDoc() {
-				if (props.isAdd) {
-					context.root.$router.go(-1)
-				} else {
-					postsCollection
-						.doc(props.id)
-						.delete()
-						.then(() => {
-							context.root.$router.push({ name: "Blog" })
-						})
-				}
-			}
-
-			onMounted(async () => {
-				if (props.isAdd) {
-					element.post = {
-						categories: [],
-						comments: 0,
-						content: "",
-						createdOn: new Date(),
-						description: "",
-						featured: false,
-						image: "",
-						likes: 0,
-						hidden: false,
-						title: "",
-						views: 0,
-						userId: auth.currentUser?.uid,
-						userName: context.root.$store.state.userProfile.name,
-					}
-				} else {
-					postsCollection
-						.doc(props.id)
-						.get()
-						.then((doc) => {
-							element.post = doc.data()
-							context.refs.editor.options.content = element.post.content
-						})
-				}
-			})
-
-			return { ...toRefs(element), save, deleteDoc }
-		},
-	})
+		return { ...toRefs(element), save, deleteDoc };
+	},
+});
 </script>
 
 <style></style>

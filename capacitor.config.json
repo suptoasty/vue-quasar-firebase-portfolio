@@ -1,6 +1,6 @@
 {
 	"appId": "com.example.app",
-	"appName": "miniman-web",
+	"appName": "",
 	"bundledWebRuntime": false,
 	"npmClient": "yarn",
 	"webDir": "dist",

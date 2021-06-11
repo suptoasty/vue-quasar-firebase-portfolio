@@ -16,6 +16,8 @@
 					"
 				/>
 				<q-btn label="Export All" outline color="blue" @click="exportJSON" />
+				<q-file v-model="file" label="Import File" outlined color="yellow" />
+				<q-btn label="Import" color="yellow" outline @click="importJSON" />
 			</div>
 		</div>
 
@@ -47,8 +49,8 @@
 				<BlogCard
 					:post="post"
 					@delete="
-						showDialogue = !showDialogue
-						deleteID = $event
+						showDialogue = !showDialogue;
+						deleteID = $event;
 					"
 				/>
 			</q-intersection>
@@ -79,134 +81,153 @@
 </template>
 
 <script lang="ts">
-	import {
-		computed,
-		defineComponent,
-		onMounted,
-		reactive,
-		toRefs,
-	} from "@vue/composition-api"
-	import { postsCollection } from "@/plugins/firebase"
-	import BlogCard from "@/components/blog/BlogCard.vue"
-	import FeaturedCarousel from "@/components/blog/FeaturedCarousel.vue"
-	import SearchCategoryBox from "@/components/blog/SearchCategoryBox.vue"
-	import print from "@/components/utils"
+import {
+	computed,
+	defineComponent,
+	onMounted,
+	reactive,
+	toRefs,
+} from "@vue/composition-api";
+import { postsCollection } from "@/plugins/firebase";
+import BlogCard from "@/components/blog/BlogCard.vue";
+import FeaturedCarousel from "@/components/blog/FeaturedCarousel.vue";
+import SearchCategoryBox from "@/components/blog/SearchCategoryBox.vue";
+import print from "@/components/utils";
+import firebase from "firebase";
 
-	export default defineComponent({
-		name: "Blog",
-		components: {
-			BlogCard,
-			FeaturedCarousel,
-			SearchCategoryBox,
-		},
-		setup() {
-			const element: any = reactive({
-				posts: [],
-				searchTerm: "",
-				featuredOnly: false,
-				categories: [],
-				showDialogue: false,
-				deleteID: "",
+export default defineComponent({
+	name: "Blog",
+	components: {
+		BlogCard,
+		FeaturedCarousel,
+		SearchCategoryBox,
+	},
+	setup() {
+		const element: any = reactive({
+			posts: [],
+			searchTerm: "",
+			featuredOnly: false,
+			categories: [],
+			showDialogue: false,
+			deleteID: "",
+			file: null,
 
-				// computed filter for posts
-				filter: computed(() => {
-					let data = element.posts
-					// console.log(data)
+			// computed filter for posts
+			filter: computed(() => {
+				let data = element.posts;
+				// console.log(data)
 
-					// hide cards marked hidden unless admin
-					if (!isAdmin.value) {
-						data = data.filter((post: any) => !post.hidden)
-					}
-
-					// filter cards by categories exclusive
-					if (element.categories.length > 0) {
-						element.categories.forEach((category: any) => {
-							data = data.filter((post: any) =>
-								post.categories
-									.map((cat: any) => cat.label)
-									.includes(category.label)
-							)
-						})
-					}
-
-					// !!!!!!!! Find way to make category search inclusive
-
-					// filter cards using key search terms
-					if (element.searchTerm !== null) {
-						data = data.filter(
-							(post: any) =>
-								String(post.title)
-									.toLowerCase()
-									.includes(String(element.searchTerm).toLowerCase()) ||
-								String(post.description)
-									.toLowerCase()
-									.includes(String(element.searchTerm).toLowerCase())
-						)
-					}
-
-					// show only featured only cards
-					if (element.featuredOnly) {
-						data = data.filter((post: any) => post.featured === true)
-					}
-
-					return data
-				}),
-			})
-			const { isAdmin } = print(0)
-
-			function deletePost() {
-				if (process.env.NODE_ENV === "development") {
-					postsCollection.doc(element.deleteID).delete()
+				// hide cards marked hidden unless admin
+				if (!isAdmin.value) {
+					data = data.filter((post: any) => !post.hidden);
 				}
+
+				// filter cards by categories exclusive
+				if (element.categories.length > 0) {
+					element.categories.forEach((category: any) => {
+						data = data.filter((post: any) =>
+							post.categories
+								.map((cat: any) => cat.label)
+								.includes(category.label)
+						);
+					});
+				}
+
+				// !!!!!!!! Find way to make category search inclusive
+
+				// filter cards using key search terms
+				if (element.searchTerm !== null) {
+					data = data.filter(
+						(post: any) =>
+							String(post.title)
+								.toLowerCase()
+								.includes(String(element.searchTerm).toLowerCase()) ||
+							String(post.description)
+								.toLowerCase()
+								.includes(String(element.searchTerm).toLowerCase())
+					);
+				}
+
+				// show only featured only cards
+				if (element.featuredOnly) {
+					data = data.filter((post: any) => post.featured === true);
+				}
+
+				return data;
+			}),
+		});
+		const { isAdmin } = print(0);
+
+		function deletePost() {
+			if (process.env.NODE_ENV === "development") {
+				postsCollection.doc(element.deleteID).delete();
 			}
+		}
 
-			function exportJSON() {
-				const el = document.createElement("a")
-				el.setAttribute(
-					"href",
-					"data:text/plain;charset=utf-8," +
-						encodeURIComponent(JSON.stringify(element.posts))
-				)
-				el.setAttribute("download", "blog.json")
+		function importJSON() {
+			(element.file as File).text().then((res) => {
+				const posts = JSON.parse(res);
 
-				el.style.display = "none"
-				document.body.appendChild(el)
+				posts.forEach((post: any) => {
+					let { createdOn } = post;
+					const timeStamp = new firebase.firestore.Timestamp(
+						createdOn.seconds,
+						createdOn.nanoseconds
+					);
 
-				el.click()
+					post.createdOn = timeStamp;
+					postsCollection.add(post);
+				});
+			});
+		}
 
-				document.body.removeChild(el)
-			}
+		function exportJSON() {
+			const el = document.createElement("a");
+			el.setAttribute(
+				"href",
+				"data:text/plain;charset=utf-8," +
+					encodeURIComponent(JSON.stringify(element.posts))
+			);
+			el.setAttribute("download", "blog.json");
 
-			// function importJSON() {
+			el.style.display = "none";
+			document.body.appendChild(el);
 
-			// }
+			el.click();
 
-			onMounted(async () => {})
+			document.body.removeChild(el);
+		}
 
-			return { ...toRefs(element), deletePost, exportJSON, isAdmin }
-		},
-		firestore: {
-			posts: postsCollection.orderBy("createdOn", "desc"),
-		},
-	})
+		// function importJSON() {
+
+		// }
+
+		onMounted(async () => {});
+
+		return { ...toRefs(element), deletePost, exportJSON, importJSON, isAdmin };
+	},
+	firestore: {
+		posts: postsCollection.orderBy("createdOn", "desc"),
+	},
+});
 </script>
 
 <style lang="scss" scoped>
-	@import "@/styles/colors.scss";
+@import "@/styles/colors.scss";
 
-	// .q-expansion-item {
-	// 	background-color: $background-accent;
-	// 	width: 50%;
-	// 	max-width: 75%;
+// .q-expansion-item {
+// 	background-color: $background-accent;
+// 	width: 50%;
+// 	max-width: 75%;
 
-	// 	.q-card {
-	// 		background: $background-accent-dark;
-	// 		color: white;
-	// 	}
-	// }
+// 	.q-card {
+// 		background: $background-accent-dark;
+// 		color: white;
+// 	}
+// }
 
-	.card-controls {
-		background-color: $background-accent;
-		color: white;
-	}
+.card-controls {
+	background-color: $background-accent;
+	color: white;
+}
 </style>
